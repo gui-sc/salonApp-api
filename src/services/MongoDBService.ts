@@ -29,6 +29,7 @@ class MongoDbService {
             this.booted = true;
         }).catch((err) => {
             console.log(err);
+            throw new Error("Failed to connect to MongoDB");
         })
     }
 
