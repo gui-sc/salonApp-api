@@ -7,7 +7,8 @@
     "clear": "rimraf dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev -r tsconfig-paths/register --respawn --ignore-watch node_modules --no-notify src/index.ts",
-    "build": "npm run clear && tsc --sourceMap"
+    "build": "npm run clear && tsc --sourceMap",
+    "start": "npm run build && node dist/index.js"
   },
   "author": "",
   "license": "ISC",
