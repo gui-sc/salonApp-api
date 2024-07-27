@@ -5,6 +5,7 @@
     "noImplicitAny": true,
     "removeComments": true,
     "preserveConstEnums": true,
+    "resolveJsonModule": true,
     "outDir": "./dist",
     "rootDir": "./src", 
     "baseUrl": ".",
@@ -19,6 +20,6 @@
       "src/*": ["src/*"]
     }
   },
-  "include": ["src/**/*", "src/index.ts"],
+  "include": ["src/**/*", "src/index.ts", "src/swagger-output.json",],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

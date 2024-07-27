@@ -1,12 +1,10 @@
 import { ObjectId } from "mongodb";
 
-export interface User {
+export interface Service {
     _id?: ObjectId;
     name: string;
-    email: string;
-    password: string;
-    active: boolean;
-    birth: Date;
+    description: string;
+    time: number;
     createdAt?: Date;
     updatedAt?: Date;
 }

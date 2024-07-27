@@ -1,12 +1,11 @@
 import { ObjectId } from "mongodb";
 
-export interface User {
+export interface Professional {
     _id?: ObjectId;
     name: string;
+    picture?: string;
     email: string;
     password: string;
-    active: boolean;
-    birth: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
