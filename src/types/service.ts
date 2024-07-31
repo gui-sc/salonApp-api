@@ -5,6 +5,7 @@ export interface Service {
     name: string;
     description: string;
     time: number;
+    price: number;
     createdAt?: Date;
     updatedAt?: Date;
 }
