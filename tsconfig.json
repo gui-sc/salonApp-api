@@ -7,7 +7,7 @@
     "preserveConstEnums": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./src", 
+    "rootDir": "./api", 
     "baseUrl": ".",
     "sourceMap": true,
     "experimentalDecorators": true,
@@ -15,11 +15,11 @@
     "esModuleInterop":true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "typeRoots": ["./node_modules/@types", "./src/@types"],
+    "typeRoots": ["./node_modules/@types", "./api/@types"],
     "paths": {
-      "src/*": ["src/*"]
+      "api/*": ["api/*"]
     }
   },
-  "include": ["src/**/*", "src/index.ts", "src/swagger-output.json",],
+  "include": ["api/**/*", "api/index.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }
