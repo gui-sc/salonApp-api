@@ -6,7 +6,7 @@ export interface Review {
     professionalId: ObjectId;
     scheduleId: ObjectId;
     rating: number;
-    comment: string;
+    comment?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
