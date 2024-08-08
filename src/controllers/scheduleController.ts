@@ -6,7 +6,6 @@ import { createScheduleSchema, getSchedulesSchema } from "../schemas/scheduleSch
 import { ObjectId } from "mongodb";
 import dayjs from "dayjs";
 import { getAllSchedules } from "../helpers/scheduleHelper";
-import { Service } from "../types/service";
 import { getAndDeleteSchema } from "../schemas/uniqueSchema";
 
 export async function index(req: Request, res: Response) {
@@ -16,9 +15,10 @@ export async function index(req: Request, res: Response) {
         }
 
         const { params } = await getSchedulesSchema.parseAsync(req);
+
         const scheduleColl = MongoDBService.db.collection<Schedule>("schedules");
         const schedules = await scheduleColl.find({
-            date: {
+            dateTime: {
                 $gte: params.date.startOf("day").toDate(),
                 $lte: params.date.endOf("day").toDate()
             }
@@ -44,13 +44,12 @@ export async function create(req: Request, res: Response) {
         const { body } = await createScheduleSchema.parseAsync(req);
 
         const scheduleColl = MongoDBService.db.collection<Schedule>("schedules");
-        const time = body.time.split(":");
+        const time = body.hour.split(":");
         const date = dayjs(body.date).set("hour", parseInt(time[0])).set("minute", parseInt(time[1]));
-        const serviceColl = MongoDBService.db.collection<Service>("services");
-        const service = await serviceColl.findOne({ _id: new ObjectId(body.serviceId) });
 
-        if (!service) {
-            return res.status(404).json({ message: "Service not found" });
+        const occupiedTimes = await getAvailables(date, false);
+        if (occupiedTimes.includes(date.format("HH:mm"))) {
+            return res.status(400).json({ message: "Time not available" });
         }
 
         await scheduleColl.insertOne({
@@ -59,7 +58,7 @@ export async function create(req: Request, res: Response) {
             professionalId: new ObjectId(body.professionalId),
             serviceId: new ObjectId(body.serviceId),
             userId: new ObjectId(body.userId),
-            time: service.time
+            time: body.time
         });
 
         return res.status(201).json({ message: "Schedule created" });
@@ -81,25 +80,8 @@ export async function showAvailables(req: Request, res: Response) {
         }
 
         const { params } = await getSchedulesSchema.parseAsync(req);
-        const scheduleColl = MongoDBService.db.collection<Schedule>("schedules");
-        const schedules = await scheduleColl.find({
-            date: {
-                $gte: params.date.startOf("day").toDate(),
-                $lte: params.date.endOf("day").toDate()
-            },
-        }).toArray();
 
-        const availableSchedules: string[] = getAllSchedules();
-        const schedulesTimes = schedules.map(schedule => {
-            const schedules = [];
-            const initialDate = dayjs(schedule.dateTime);
-            const times = Math.ceil(schedule.time / 30);
-            for (let i = 0; i < times; i++) {
-                schedules.push(initialDate.add(30 * i, "minute").format("HH:mm"));
-            }
-            return schedules;
-        }).flat();
-        const availableTimes = availableSchedules.filter(time => !schedulesTimes.includes(time));
+        const availableTimes = await getAvailables(params.date, true);
 
         return res.status(200).json({ availableTimes });
     } catch (error) {
@@ -135,4 +117,32 @@ export async function remove(req: Request, res: Response) {
     } finally {
         await MongoDBService.close();
     }
+}
+
+async function getAvailables(date: dayjs.Dayjs, available: boolean): Promise<string[]> {
+    const scheduleColl = MongoDBService.db.collection<Schedule>("schedules");
+    const schedules = await scheduleColl.find({
+        dateTime: {
+            $gte: date.startOf("day").toDate(),
+            $lte: date.endOf("day").toDate()
+        },
+    }).toArray();
+
+    const availableSchedules: string[] = getAllSchedules();
+    const schedulesTimes = schedules.map(schedule => {
+        const schedules = [];
+        const initialDate = dayjs(schedule.dateTime);
+        const times = Math.ceil(schedule.time / 30);
+        for (let i = 0; i < times; i++) {
+            schedules.push(initialDate.add(30 * i, "minute").format("HH:mm"));
+        }
+        return schedules;
+    }).flat();
+    const availableTimes = availableSchedules.filter(time => {
+        if (available) {
+            return !schedulesTimes.includes(time);
+        }
+        return schedulesTimes.includes(time);
+    });
+    return availableTimes;
 }

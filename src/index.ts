@@ -7,6 +7,7 @@ import professionalRouter from './routes/professionalRouter';
 import serviceRouter from './routes/serviceRouter';
 import professionalServiceRouter from './routes/professionalServiceRouter';
 import reviewRouter from './routes/reviewRouter';
+import scheduleRouter from './routes/scheduleRouter';
 import morgan from 'morgan';
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,7 @@ app.use("/user", userRouter);
 app.use("/professional", professionalRouter);
 app.use("/service", serviceRouter);
 app.use("/professionalService", professionalServiceRouter);
+app.use("/schedule", scheduleRouter);
 app.use("/review", reviewRouter);
 
 app.listen(PORT, () => {

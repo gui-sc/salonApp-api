@@ -6,6 +6,8 @@ export const reviewSchema = z.object({
             .min(1, { message: "ID do Cliente é obrigatório" }),
         professionalId: z.string({ message: "ID do Profissional é obrigatório" })
             .min(1, { message: "ID do Profissional é obrigatório" }),
+        serviceId: z.string({ message: "ID do Serviço é obrigatório" })
+            .min(1, { message: "ID do Serviço é obrigatório" }),
         scheduleId: z.string({ message: "ID do Agendamento é obrigatório" })
             .min(1, { message: "ID do Agendamento é obrigatório" }),
         rating: z.number({ message: "Avaliação é obrigatória" })
