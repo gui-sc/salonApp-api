@@ -7,7 +7,7 @@
     "preserveConstEnums": true,
     "resolveJsonModule": true,
     "outDir": "./dist",
-    "rootDir": "./api", 
+    "rootDir": "src", 
     "baseUrl": ".",
     "sourceMap": true,
     "experimentalDecorators": true,
@@ -15,11 +15,11 @@
     "esModuleInterop":true,
     "skipLibCheck": true,
     "strictNullChecks": true,
-    "typeRoots": ["./node_modules/@types", "./api/@types"],
+    "typeRoots": ["./node_modules/@types", "src/@types"],
     "paths": {
-      "api/*": ["api/*"]
+      "src/*": ["src/*"]
     }
   },
-  "include": ["api/**/*", "api/index.ts"],
+  "include": ["src/**/*", "src/index.ts"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
 }

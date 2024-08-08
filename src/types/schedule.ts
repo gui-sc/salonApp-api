@@ -5,7 +5,8 @@ export interface Schedule {
     userId: ObjectId;
     professionalId: ObjectId;
     serviceId: ObjectId;
-    date: Date;
+    dateTime: Date;
+    time: number;
     price: number;
     createdAt?: Date;
     updatedAt?: Date;

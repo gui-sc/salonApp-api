@@ -14,6 +14,10 @@ export async function create(req: Request, res: Response) {
             await MongoDBService.boot();
         }
         const usersColl = MongoDBService.db.collection<User>('users');
+        const user = await usersColl.findOne({ email: body.email });
+        if (user) {
+            return res.status(409).send({ message: "Usuário já existe" });
+        }
         const password = await bcrypt.hash(body.password, 10);
         await usersColl.insertOne({
             email: body.email,
@@ -74,7 +78,7 @@ export async function getById(req: Request, res: Response) {
         return res.status(200).send({ user: rest });
     } catch (err) {
         console.log(err);
-        if(err instanceof ZodError){
+        if (err instanceof ZodError) {
             return res.status(400).send({ message: err.errors.map(err => err.message) });
         }
         return res.status(500).send({ message: "Internal Server Error" });
@@ -103,7 +107,7 @@ export async function login(req: Request, res: Response) {
         return res.status(200).send({ message: "Login successful" });
     } catch (error) {
         console.log(error);
-        if(error instanceof ZodError){
+        if (error instanceof ZodError) {
             return res.status(400).send({ message: error.errors.map(err => err.message) });
         }
         return res.status(500).send({ message: "Internal Server Error" });
@@ -144,7 +148,7 @@ export async function update(req: Request, res: Response) {
         return res.status(200).send({ message: "User updated" });
     } catch (error) {
         console.log(error);
-        if(error instanceof ZodError){
+        if (error instanceof ZodError) {
             return res.status(400).send({ message: error.errors.map(err => err.message) });
         }
         return res.status(500).send({ message: "Internal Server Error" });
@@ -169,10 +173,33 @@ export async function inactivate(req: Request, res: Response) {
         return res.status(200).send({ message: "User inactivated" });
     } catch (error) {
         console.log(error);
-        if(error instanceof ZodError){
+        if (error instanceof ZodError) {
             return res.status(400).send({ message: error.errors.map(err => err.message) });
         }
         return res.status(500).send({ message: "Internal Server Error" });
+    } finally {
+        await MongoDBService.close();
+    }
+}
+
+export async function remove(req: Request, res: Response) {
+    try {
+        while (!MongoDBService.booted) {
+            await MongoDBService.boot();
+        }
+        const { params } = await getAndDeleteSchema.parseAsync(req);
+        const usersColl = MongoDBService.db.collection<User>('users');
+        const result = await usersColl.deleteOne({ _id: new ObjectId(params.id) });
+        if (!result.deletedCount) {
+            return res.status(404).send({ message: "User not found" });
+        }
+        return res.status(200).send({ message: "User removed" });
+    } catch (error) {
+        console.error(error);
+        if (error instanceof ZodError) {
+            return res.status(400).send({ message: error.errors.map(err => err.message) });
+        }
+        return res.status(500).send({ message: "Internal server error" });
     } finally {
         await MongoDBService.close();
     }
@@ -194,7 +221,7 @@ export async function activate(req: Request, res: Response) {
         return res.status(200).send({ message: "User activated" });
     } catch (error) {
         console.log(error);
-        if(error instanceof ZodError){
+        if (error instanceof ZodError) {
             return res.status(400).send({ message: error.errors.map(err => err.message) });
         }
         return res.status(500).send({ message: "Internal Server Error" });

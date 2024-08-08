@@ -10,5 +10,6 @@ router.get('/:id', userController.getById);
 router.put('/:id/activate', userController.activate);
 router.put('/:id', userController.update);
 router.delete('/:id', userController.inactivate);
+router.delete('/:id/delete', userController.remove);
 
 export default router;
