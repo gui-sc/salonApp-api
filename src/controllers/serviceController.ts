@@ -9,9 +9,11 @@ import { ObjectId } from "mongodb";
 export async function create(req: Request, res: Response) {
     try {
         const { body } = await createServiceSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const servicesColl = MongoDBService.db.collection<Service>('services');
         await servicesColl.insertOne({
             name: body.name,
@@ -21,6 +23,7 @@ export async function create(req: Request, res: Response) {
             createdAt: new Date(),
             updatedAt: new Date(),
         });
+
         return res.status(201).send({ message: "Service created" });
     } catch (error) {
         console.error(error);
@@ -38,8 +41,10 @@ export async function list(req: Request, res: Response) {
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const servicesColl = MongoDBService.db.collection<Service>('services');
         const services = await servicesColl.find().toArray();
+
         return res.status(200).send(services);
     } catch (error) {
         console.error(error);
@@ -52,14 +57,18 @@ export async function list(req: Request, res: Response) {
 export async function get(req: Request, res: Response) {
     try {
         const { params } = await getAndDeleteSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const servicesColl = MongoDBService.db.collection<Service>('services');
         const service = await servicesColl.findOne({ _id: new ObjectId(params.id) });
+
         if (!service) {
             return res.status(404).send({ message: "Service not found" });
         }
+
         return res.status(200).send(service);
     } catch (error) {
         console.error(error);
@@ -72,14 +81,18 @@ export async function get(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { params, body } = await updateServiceSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const servicesColl = MongoDBService.db.collection<Service>('services');
         const service = await servicesColl.findOne({ _id: new ObjectId(params.id) });
+
         if (!service) {
             return res.status(404).send({ message: "Service not found" });
         }
+
         await servicesColl.updateOne({ _id: new ObjectId(params.id) }, {
             $set: {
                 name: body.name,
@@ -89,6 +102,7 @@ export async function update(req: Request, res: Response) {
                 updatedAt: new Date(),
             }
         });
+
         return res.status(200).send({ message: "Service updated" });
     } catch (error) {
         console.error(error);
@@ -104,15 +118,20 @@ export async function update(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
     try {
         const { params } = await getAndDeleteSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const servicesColl = MongoDBService.db.collection<Service>('services');
         const service = await servicesColl.findOne({ _id: new ObjectId(params.id) });
+
         if (!service) {
             return res.status(404).send({ message: "Service not found" });
         }
+
         await servicesColl.deleteOne({ _id: new ObjectId(params.id) });
+
         return res.status(200).send({ message: "Service removed" });
     } catch (error) {
         console.error(error);

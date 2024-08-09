@@ -10,15 +10,20 @@ import { getAndDeleteSchema, loginSchema } from "../schemas/uniqueSchema";
 export async function create(req: Request, res: Response) {
     try {
         const { body } = await createUserSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const user = await usersColl.findOne({ email: body.email });
+
         if (user) {
             return res.status(409).send({ message: "Usuário já existe" });
         }
+
         const password = await bcrypt.hash(body.password, 10);
+
         await usersColl.insertOne({
             email: body.email,
             name: body.name,
@@ -27,10 +32,9 @@ export async function create(req: Request, res: Response) {
             birth: body.birth,
             createdAt: new Date(),
             updatedAt: new Date(),
-        }).finally(async () => {
-            await MongoDBService.close();
-            res.status(201).send({ message: "User created" });
-        });
+        })
+
+        return res.status(201).send({ message: "User created" });
     } catch (err) {
         console.log(err);
         if (err instanceof ZodError) {
@@ -48,12 +52,15 @@ export async function getAll(req: Request, res: Response) {
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const users = await usersColl.find().toArray();
+
         const usersWithoutPassword = users.map(user => {
             const { password, ...rest } = user;
             return rest;
         });
+
         return res.status(200).send({ users: usersWithoutPassword });
     } catch (err) {
         console.log(err);
@@ -66,15 +73,19 @@ export async function getAll(req: Request, res: Response) {
 export async function getById(req: Request, res: Response) {
     try {
         const { params } = await getAndDeleteSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const user = await usersColl.findOne({ _id: new ObjectId(params.id) });
+
         if (!user) {
             return res.status(404).send({ message: "User not found" });
         }
         const { password, ...rest } = user;
+
         return res.status(200).send({ user: rest });
     } catch (err) {
         console.log(err);
@@ -91,14 +102,18 @@ export async function getById(req: Request, res: Response) {
 export async function login(req: Request, res: Response) {
     try {
         const { body } = await loginSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const user = await usersColl.findOne({ email: body.email });
+
         if (!user) {
             return res.status(401).send({ message: "Invalid credentials" });
         }
+
         const match = await bcrypt.compare(body.password, user.password);
         if (!match) {
             return res.status(401).send({ message: "Invalid credentials" });
@@ -123,6 +138,7 @@ export async function update(req: Request, res: Response) {
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const set: Record<string, Record<string, string | Date>> = {
             $set: {
@@ -145,6 +161,7 @@ export async function update(req: Request, res: Response) {
         if (!result.matchedCount) {
             return res.status(404).send({ message: "User not found" });
         }
+
         return res.status(200).send({ message: "User updated" });
     } catch (error) {
         console.log(error);
@@ -160,16 +177,23 @@ export async function update(req: Request, res: Response) {
 export async function inactivate(req: Request, res: Response) {
     try {
         const { params } = await getAndDeleteSchema.parseAsync(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
-        await usersColl.updateOne({ _id: new ObjectId(params.id) }, {
+        const result = await usersColl.updateOne({ _id: new ObjectId(params.id) }, {
             $set: {
                 active: false,
                 updatedAt: new Date()
             }
         })
+
+        if (result.matchedCount === 0) {
+            return res.status(404).send({ message: "User not found" });
+        }
+
         return res.status(200).send({ message: "User inactivated" });
     } catch (error) {
         console.log(error);
@@ -187,12 +211,16 @@ export async function remove(req: Request, res: Response) {
         while (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const { params } = await getAndDeleteSchema.parseAsync(req);
+
         const usersColl = MongoDBService.db.collection<User>('users');
         const result = await usersColl.deleteOne({ _id: new ObjectId(params.id) });
+
         if (!result.deletedCount) {
             return res.status(404).send({ message: "User not found" });
         }
+
         return res.status(200).send({ message: "User removed" });
     } catch (error) {
         console.error(error);
@@ -208,16 +236,23 @@ export async function remove(req: Request, res: Response) {
 export async function activate(req: Request, res: Response) {
     try {
         const { params } = getAndDeleteSchema.parse(req);
+
         if (!MongoDBService.booted) {
             await MongoDBService.boot();
         }
+
         const usersColl = MongoDBService.db.collection<User>('users');
-        await usersColl.updateOne({ _id: new ObjectId(params.id) }, {
+        const result = await usersColl.updateOne({ _id: new ObjectId(params.id) }, {
             $set: {
                 active: true,
                 updatedAt: new Date()
             }
         })
+
+        if (result.matchedCount === 0) {
+            return res.status(404).send({ message: "User not found" });
+        }
+
         return res.status(200).send({ message: "User activated" });
     } catch (error) {
         console.log(error);

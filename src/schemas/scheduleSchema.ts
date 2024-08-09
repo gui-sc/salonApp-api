@@ -1,9 +1,21 @@
 import dayjs from "dayjs";
 import { z } from "zod";
 
-export const getSchedulesSchema = z.object({
+export const getSchedulesByProfessionalSchema = z.object({
     params: z.object({
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).transform(value => dayjs(value))
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).transform(value => dayjs(value)),
+        professionalId: z.string({
+            required_error: "ID do profissional é obrigatório"
+        }).min(1, { message: "ID do profissional é obrigatório" })
+    })
+})
+
+export const getSchedulesByUserSchema = z.object({
+    params: z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).transform(value => dayjs(value)),
+        userId: z.string({
+            required_error: "ID do profissional é obrigatório"
+        }).min(1, { message: "ID do profissional é obrigatório" })
     })
 })
 
@@ -18,9 +30,3 @@ export const createScheduleSchema = z.object({
         price: z.number().min(0.01, { message: "Preço deve ser maior que 0" })
     })
 })
-
-/*userId: ObjectId;
-    professionalId: ObjectId;
-    serviceId: ObjectId;
-    date: Date;
-    price: number; */
